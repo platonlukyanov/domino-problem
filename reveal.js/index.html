@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+		<title>reveal.js</title>
+
+		<link rel="stylesheet" href="dist/reset.css">
+		<link rel="stylesheet" href="dist/reveal.css">
+		<link rel="stylesheet" href="dist/theme/night.css">
+
+		<!-- Theme used for syntax highlighted code -->
+		<link rel="stylesheet" href="plugin/highlight/monokai.css">
+		<style>
+			.no-scroll {
+				-ms-overflow-style: none;  /* Internet Explorer 10+ */
+				scrollbar-width: none;  /* Firefox */
+			}
+			.no-scroll::-webkit-scrollbar { 
+				display: none;  /* Safari and Chrome */
+			}
+		</style>
+	</head>
+	<body>
+			<div class="reveal">
+			  <div class="slides">
+				<section id="intro">
+					<h2>Замощение таблицы доминошками</h2>
+				</section>
+	
+				<section>
+				  <p><b>Задача:</b> Найти количество способов замостить таблицу <code>n×m</code> доминошками 1×2 и 2×1.</p>
+				</section>
+
+				<section>
+					<h3>Примеры замощения</h3>
+					<div style="display: flex; justify-content: space-around; margin-top: 30px;">
+						<div>
+							<p style="font-size: 24px; margin-bottom: 20px;"><b>Таблица (2x2):</b></p>
+							<div style="display: flex; justify-content: center; gap: 20px;">
+								<pre style="margin: 0; padding: 0 20px;"><code style="font-size: 32px;">==</code></pre>
+								<pre style="margin: 0; padding: 0 20px;"><code style="font-size: 32px;">|| ||</code></pre>
+							</div>
+						</div>
+						
+						<div>
+							<p style="font-size: 24px; margin-bottom: 20px;"><b>Таблица (2x3):</b></p>
+							<div>
+								<p style="font-size: 20px; margin: 10px 0;"><i>Вариант 1: 3 вертикальных домино</i></p>
+								<pre style="height: 100px; overflow: hidden; white-space: pre;"><code style="font-size: 32px;"> _   _   _
+|_| |_| |_|
+|_| |_| |_|</code></pre>
+								<p style="font-size: 20px; margin: 10px 0;"><i>Вариант 2: 2 горизонтальных домино</i></p>
+								<pre style="height: 100px; overflow: hidden; white-space: pre;"><code style="font-size: 32px;"> __   _
+|__| | |
+|__| |_|</code></pre>
+							</div>
+						</div>
+					</div>
+				</section>
+
+				<section>
+					<h3>Ограничения</h3>
+					<ul>
+						<li>Если общее число клеток нечётное (<code>n × m</code> не делится на 2), замостить таблицу невозможно, потому что каждая доминошка покрывает ровно 2 клетки.</li>
+						<li>Размеры таблицы обычно ограничены сверху (например, <code>n, m <= 10</code>), потому что количество способов быстро растёт.</li>
+					</ul>
+				</section>
+
+				<section>
+					<h3>Формальные требования</h3>
+					<b>Вход</b>: два числа — размеры таблицы n и m.
+					<b>Выход</b>: одно число — количество способов замостить таблицу доминошками 1×2 и 2×1.
+				</section>
+				<section>
+					<h3>Как решается задача?</h3>
+				</section>
+				<section>
+					<h3>1. Профиль</h3>
+					<p>
+					 	Cостояние одной вертикальной полосы (столбца) поля, закодированное в виде битовой маски длины n.
+					</p>
+					<ul>
+						<li>0 — клетка свободна</li>
+						<li>1 — домино лежит горизонтально и заканчивается на этом столбце</li>
+					</ul>
+				</section>
+				<section>
+				<h3>Визуализация</h3>
+				<div style="background-color: white; border-radius: 2rem;">
+					<img src="./domino-profile.png" style="width: 600px; height: auto; margin: 0 auto;" />
+				</div>
+				</section>
+				<section>
+				  <h3>2. Матрица переходов профилей</h3>
+				  <ul style="font-size: x-large;">
+					<li>Строим матрицу <code>d</code>: <code>d[i][j] = 1</code>, если можно перейти из профиля <code>j</code> в <code>i</code>.</li>
+					<li>Условия перехода:
+					  <ul>
+						<li>В <code>j</code> там, где 1, в <code>i</code> должно быть 0. (т.е можно положить горизонтальную доминошку, чтобы ее начало лежало в столбце <code>i</code>)</li>
+						<li>Оставшиеся 0 в <code>i</code> — чётные подстроки (можно положить вертикальные домино).</li>
+					  </ul>
+					</li>
+				  </ul>
+				  <p style="font-size: x-large;">Сначала проверяем условие 1, а затем условие 2. Если оба выполняются для i, j - ставим в матрицу 1</p>
+				</section>
+				<section>
+  <h3>Матрица переходов для n = 2</h3>
+  <p style="font-size: x-large;">
+    <b>Пояснения:</b><br>
+    00 = обе клетки свободны, 01 = верхняя занята, 10 = нижняя занята, 11 = обе заняты.<br>
+    <br>
+    <b>Таблица d[j][i]:</b> 1 — переход возможен, 0 — нет
+  </p>
+  <table style="font-size: x-large;">
+    <thead>
+      <tr>
+        <th>j \ i</th>
+        <th>00</th>
+        <th>01</th>
+        <th>10</th>
+        <th>11</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><b>00</b></td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+        <td>1</td>
+      </tr>
+      <tr>
+        <td><b>01</b></td>
+        <td>0</td>
+        <td>0</td>
+        <td>1</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td><b>10</b></td>
+        <td>0</td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+      </tr>
+      <tr>
+        <td><b>11</b></td>
+        <td>1</td>
+        <td>0</td>
+        <td>0</td>
+        <td>1</td>
+      </tr>
+    </tbody>
+  </table>
+  <p style="font-size: large;">
+    <b>Пример:</b> d[00][11] = 1 означает, что из профиля 00 (обе клетки свободны) можно перейти в 11 (обе клетки заняты горизонтальными домино).
+  </p>
+</section>
+
+		  
+				<section>
+				  <h3>3. Динамика по столбцам</h3>
+				  <ul>
+					<li>Массив <code>a[k][i]</code> — число способов дойти до <code>k</code>-го столбца с профилем <code>i</code>.</li>
+					<li>Начальное состояние: <code>a[0][0] = 1</code>.</li>
+					<li>Переход:
+					  <pre>a[k][i] = sum(a[k-1][j] * d[i][j])</pre>
+					</li>
+				  </ul>
+				</section>
+				<section>
+					<pre> 
+						<code style="font-size: small;" data-line-numbers="1-5|5-8|10-15|16-20|21-28|29-42|43-44|46-47|49-59" class="python no-scroll">def tiling_dominoes(n, m):
+    if (n * m % 2 != 0):
+        return "Your table cannot be paved with 2 x 1 and 1 x 2 dominoes."
+    if n % 2 != 0 and m % 2 == 0:
+        n, m = m, n  # Меняем местами для корректной работы combined в будущем
+
+    profiles = 1 << n  # 2^n профилей
+    d = [[0] * profiles for i in range(profiles)]
+    
+    # Построение матрицы переходов
+    # Мы делаем матрицу d такую, которая показывает нам из какого профиля можно перейти в какой
+	 	# Например: если d[0] = [1,0,0,1], то это значит, что из 0 столбца,
+		# то есть из 00 можно перейти в 00 и в 11 и больше никуда 
+    for j in range(profiles):
+        for i in range(profiles):
+            # проверяет не пересекаются ли 1 в нашем и следующем столбце
+						# например: 01(1) и 11(3) = 01(1), и если где то будет не 00,
+						# то значит оно нам не подходит
+            if (j & i) != 0:
+                continue
+            combined = j | i # делает n битов, которые содержат объединение битов нашего столбца и следующего.
+						# Например: если нынешний = 00(0) а следующий = 11(3), то их объединение = 11,
+						# оно нам нужно для проверки количества нулей между 1, то есть если есть например 1010 и 0000,
+						# то получится 1010 и нам никак не всунуть туда доминошки вертикальные.
+            # вы зададитесь вопросом: почему если в 1 единичка,
+						# то в следующем не надо проверять количество нулей во 2,
+						# так как если 1 то в следующем столбце должно быть ноль
+						# и они могут быть замощены, например, горизонтальными
+            count = 0
+            valid = True
+            for bit in range(n): # проходимся по нашему combined = 11 (как в примере)
+								# и считаем с первого бита, то есть с 1 или если наш combined = 10, то с 0 и потом 1
+								# и если это  = 1, то проверяем на количество 0 до этой единицы
+								# и делаем его False если значит не равно нулю и заканчиваем этот цикл,
+								# а если кратно 2, то значит count = 0
+                if (combined >> bit) & 1:
+                    if count % 2 != 0:
+                        valid = False
+                        break
+                    count = 0
+                else:
+                    count += 1
+            if valid and (count % 2 == 0):
+                d[j][i] = 1
+
+    a = [[0] * profiles for i in range(m + 1)]
+    a[0][0] = 1 # так как первым столбец может быть только 0, в нашем случае 00
+    
+    # Заполнение динамики
+    for k in range(1, m + 1): # проходимся по всем столбцам до m+1
+		# так как мы еще создаем столбец после последнего,
+		# чтобы сосчитать количество способов прийти в 00 в конце
+        for i in range(profiles): # проходимся по всем профилям
+						# считаем для каждого профиля количество возможных способов туда перейти на такой то столбец
+            a[k][i] = sum(a[k-1][j] * d[i][j] for j in range(profiles))
+            # то есть мы для каждого столбца ищем количество способов добраться до предыдущего столбца
+						# и умножаем на d = 0, если переход невозможен и 1, если переход реален
+						# и после мы прибавляем все к a[k][i]
+    return a[m][0]
+print(tiling_dominoes(int(input()), int(input())))
+ 
+						</code>
+					</pre>
+				</section>
+		  
+				<section>
+				  <h3>Сложность алгоритма</h3>
+				  <ul>
+					<li>Временная сложность: \[\begin{aligned} O(2^{2n} m) \end{aligned}\]</li>
+					<li>Подходит для небольших <code>n</code> (до 5-6)</li>
+				  </ul>
+				</section>
+		  
+				<section>
+				  <h3>Вопросы?</h3>
+				  <p>Спасибо за внимание!</p>
+				</section>
+		  
+			  </div>
+			</div>
+			<script src="dist/reveal.js"></script>
+			<script>
+			  Reveal.initialize();
+		</script>
+
+		<script src="dist/reveal.js"></script>
+		<script src="plugin/notes/notes.js"></script>
+		<script src="plugin/markdown/markdown.js"></script>
+		<script src="plugin/highlight/highlight.js"></script>
+		<script src="plugin/math/math.js"></script>
+		<script>
+			// More info about initialization & config:
+			// - https://revealjs.com/initialization/
+			// - https://revealjs.com/config/
+			Reveal.initialize({
+				hash: true,
+
+				// Learn about plugins: https://revealjs.com/plugins/
+				plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, RevealMath.KaTeX ]
+			});
+		</script>
+	</body>
+</html>
